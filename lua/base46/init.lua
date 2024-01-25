@@ -179,6 +179,7 @@ function M.merge_tbl(tbl1, tbl2)
 end
 
 function M.get_colors(base, theme_name)
+  P(require("base46.themes")
   local path = "base46.themes." .. theme_name
   local present, theme = pcall(require, path)
 

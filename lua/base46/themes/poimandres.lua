@@ -1,6 +1,6 @@
 -- Credits to original theme https://github.com/olivercederborg/poimandres.nvim
 -- This is a modified version by @kayuxx & @siduck
----@type Base46Table
+---@class Base46Table
 local M = {}
 
 M.base_30 = {
