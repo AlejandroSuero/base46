@@ -1,6 +1,8 @@
 local M = {}
 local g = vim.g
-local config = require "nvconfig"
+local config = require "aome.core.default_config"
+
+local fnamemodify = vim.fn.fnamemodify
 
 M.get_theme_tb = function(type)
   local default_path = "base46.themes." .. config.ui.theme
@@ -158,7 +160,7 @@ M.toggle_theme = function()
 
   config.ui.theme = (themes[1] == config.ui.theme and themes[2]) or themes[1]
 
-  local old_theme = dofile(vim.fn.stdpath "config" .. "/lua/custom/chadrc.lua").ui.theme
+  local old_theme = dofile(vim.fn.stdpath "config" .. "/lua/aome/default_config.lua").ui.theme
   require("nvchad.utils").replace_word(old_theme, config.ui.theme)
   M.load_all_highlights()
 end
@@ -167,9 +169,123 @@ M.toggle_transparency = function()
   config.ui.transparency = not config.ui.transparency
   M.load_all_highlights()
 
-  local old_transparency_val = dofile(vim.fn.stdpath "config" .. "/lua/custom/chadrc.lua").ui.transparency
+  local old_transparency_val = dofile(vim.fn.stdpath "config" .. "/lua/aome/core/default_config.lua").ui.transparency
   local new_transparency_val = "transparency = " .. tostring(config.ui.transparency)
-  require("nvchad.utils").replace_word("transparency = " .. tostring(old_transparency_val),new_transparency_val)
+  require("nvchad.utils").replace_word("transparency = " .. tostring(old_transparency_val), new_transparency_val)
+end
+
+function M.merge_tbl(tbl1, tbl2)
+  return vim.tbl_deep_extend("force", tbl1, tbl2)
+end
+
+function M.get_colors(base, theme_name)
+  local path = "base46.themes." .. theme_name
+  local present, theme = pcall(require, path)
+
+  if not present then
+    error("`" .. theme_name .. "`" .. " is not an available theme", 2)
+    return
+  end
+
+  if base == "base46" then
+    local base46 = M.merge_tbl(theme.base_16, theme.base_30)
+    return base46
+  end
+
+  return theme.base_16
+end
+
+function M.get_polish(theme_name)
+  local path = "base46.hl_themes." .. theme_name
+  local present, theme = pcall(require, path)
+
+  if not present then
+    error("`" .. theme_name .. "`" .. " is not an available theme", 2)
+    return
+  end
+
+  return theme.polish_hl
+end
+
+function M.get_lualine_theme(base, theme_name)
+  if not base == "base46" then
+    error "must use base46 for lualine theme"
+    return
+  end
+
+  local colors = M.get_colors(base, theme_name)
+  if colors == nil then
+    error "failed to get colors from theme"
+    return
+  end
+
+  local default_b = { bg = colors.one_bg, fg = colors.white }
+  local default_c = { bg = colors.black2, fg = colors.white }
+  local lualine_theme = {
+    normal = {
+      a = { bg = colors.red, fg = colors.black, gui = "bold" },
+      b = default_b,
+      c = default_c,
+      z = { bg = colors.cyan, fg = colors.black, gui = "bold" },
+    },
+    insert = {
+      a = { bg = colors.blue, fg = colors.black, gui = "bold" },
+      b = default_b,
+      c = default_c,
+    },
+    visual = {
+      a = { bg = colors.dark_purple, fg = colors.black, gui = "bold" },
+      b = default_b,
+      c = default_c,
+    },
+    replace = {
+      a = { bg = colors.red, fg = colors.black, gui = "bold" },
+      b = default_b,
+      c = default_c,
+    },
+    command = {
+      a = { bg = colors.green, fg = colors.black, gui = "bold" },
+      b = default_b,
+      c = default_c,
+    },
+    inactive = {
+      a = { bg = colors.black, fg = colors.gray, gui = "bold" },
+      b = { bg = colors.black, fg = colors.gray },
+      c = { bg = colors.black, fg = colors.gray },
+    },
+  }
+
+  return lualine_theme
+end
+
+function M.get_dir_modules(dir_path)
+  local dir_contents = require("plenary.scandir").scan_dir(dir_path, {})
+
+  local modules = {}
+  for _, content in ipairs(dir_contents) do
+    local module = fnamemodify(fnamemodify(content, ":t"), ":r")
+    table.insert(modules, module)
+  end
+
+  return modules
+end
+
+M.load_theme = function(user_opts)
+  local opts = {
+    base = "base46",
+    theme = "",
+    transparency = false,
+  }
+
+  opts = M.merge_tbl(opts, user_opts)
+
+  local colors = M.get_colors(opts.base, opts.theme)
+  if not colors then
+    return
+  end
+
+  -- term hls
+  require "base46.term"
 end
 
 return M
