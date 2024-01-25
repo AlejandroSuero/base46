@@ -17,7 +17,7 @@ local M = {
   },
 }
 
-local cheatsheet_theme = require("nvconfig").ui.cheatsheet.theme
+local cheatsheet_theme = require("aome.core.default_config").ui.cheatsheet.theme
 
 if cheatsheet_theme == "grid" then
   M.NvChAsciiHeader = {

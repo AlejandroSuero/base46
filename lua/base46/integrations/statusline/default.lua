@@ -1,4 +1,4 @@
-local config = require("nvconfig").ui
+local config = require("aome.core.default_config").ui
 local get_theme_tb = require("base46").get_theme_tb
 local colors = get_theme_tb "base_30"
 local generate_color = require("base46.colors").change_hex_lightness

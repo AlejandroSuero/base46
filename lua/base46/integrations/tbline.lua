@@ -1,6 +1,6 @@
 local colors = require("base46").get_theme_tb "base_30"
 
-local config = require("nvconfig").ui
+local config = require("aome.core.default_config").ui
 
 local highlights = {
 
